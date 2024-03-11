@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <cstring>
+#include <string.h>
 
 #include <Servo.h>
 
