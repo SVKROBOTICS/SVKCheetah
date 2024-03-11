@@ -14,9 +14,9 @@ uint16_t sensorValues[sensorCount];
 
 
 // PID constants
-double Kp = 0.1;      // Proportional constant
-double Ki = 0.001;    // Integral constant
-double Kd = 0.05;     // Derivative constant
+float Kp = 0.1;      // Proportional constant
+float Ki = 0.001;    // Integral constant
+float Kd = 0.05;     // Derivative constant
 
 // Motor Pins
 const uint8_t PWMA = 3;
@@ -26,8 +26,8 @@ const uint8_t DIRB = A1;
 
 // PID variables
 
-double lastError = 0;
-double integral = 0;
+float lastError = 0;
+float integral = 0;
 
 
 // Motor Speed variables
@@ -84,16 +84,16 @@ void setup()
 
 void loop() {
   // read calibrated sensors values and get position of black line from 0 to 7000 (8 sensors)
-  double position = cheetah.readLineBlack(sensorValues);
-  double error = 3500 - position; // Assuming the line is at the middle (3500)
+  float position = cheetah.readLineBlack(sensorValues);
+  float error = 7500 - position; // Assuming the line is at the middle (7500)
 
   integral += error;
   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
 
-  double derivative = error - lastError;
+  float derivative = error - lastError;
   lastError = error;
 
-  double output = Kp * error + Ki * integral + Kd * derivative;
+  float output = Kp * error + Ki * integral + Kd * derivative;
 
   // Adjust motor speeds based on PID output
   leftSpeed = baseSpeed + output;
