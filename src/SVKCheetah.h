@@ -18,7 +18,7 @@ class IRSensorsCheetah {
             FOR EXAMPLE:   _muxPins = {5(Signal0),6(Signal1),7(Signal2),A0(OUTPUT)}
             @param pins Multiplexer pins that should be inserted with correct order (SEE ABOVE)
         ***/
-        void setMultiplexerPins(const uint8_t *pins);
+        void setMultiplexerPins(const uint8_t *mux1, const uint8_t *mux2);
 
 
         /// @brief Sets number of analog readings to average per analog sensor
@@ -56,6 +56,18 @@ class IRSensorsCheetah {
         /// @brief Calibration data
         CalibrationData _calibration;
 
+        /// @brief Sets if Turbine will be activated or not (Default is true)
+        /// @param turbineMode Bool value , wether true = on or false = off
+        void setTurbineMode(bool turbineMode)   { _turbineOn = turbineMode; };
+
+        /// @brief Gets the mode of the turbine for this run
+        /// @return Bool value, true = on or false = off
+        bool getTurbineMode()   { return _turbineOn; };
+
+        /// @brief Sets Turbine speed
+        /// @param speed Integer for speed of turbine
+        void setTurbineSpeed(int speed);
+
         /// @brief Calibrates Robot to black line values
         void calibrate();
 
@@ -78,9 +90,12 @@ class IRSensorsCheetah {
 
 
 
+
+
+
     private:
         // Amount of IR sensors
-        const uint8_t _sensorAmount = 8;
+        const uint8_t _sensorAmount = 16;
 
         // Multiplexer signal pins and output pin
         uint8_t *_muxPins = nullptr;
@@ -92,6 +107,8 @@ class IRSensorsCheetah {
         bool _calibrateOn = true;
         // Sets the amount of samples that should be taken for each sensor. Higher number reduces noise but slows down the process
         uint8_t _samplesPerSensor = 4;
+        // checks if turbine should be activated or not
+        bool _turbineOn = true;
         // Sets max value readLine should see
         uint16_t _maxValue = 1023;
         // Last known line position

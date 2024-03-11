@@ -3,32 +3,40 @@
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <cstring>
 
-void IRSensorsCheetah::setMultiplexerPins(const uint8_t *pins)
-{
-    // 4 Pins used for Multiplexer (3 Signal 1 Output)
-    const uint8_t pinAmount = 4;
+#include <Servo.h>
 
-    uint8_t * oldMuxPins = _muxPins;
-    /// (Re)Allocates space for dynamic array of Multiplexer 3 Signal Pins + 1 Output Pin (4 pins)
+void IRSensorsCheetah::setMultiplexerPins(const uint8_t *mux1, const uint8_t *mux2) {
+    // 8 Pins used for Multiplexer (6 Signal 2 Output)
+    const uint8_t pinAmount = 8;
+
+    // Reallocate space for _muxPins
+    uint8_t *oldMuxPins = _muxPins;
     _muxPins = (uint8_t *)realloc(_muxPins, sizeof(uint8_t) * pinAmount);
 
-    if(_muxPins == nullptr)
-    {
-      free(oldMuxPins);
-      return;
+    // Check if reallocation succeeded
+    if (_muxPins == nullptr) {
+        free(oldMuxPins);
+        return;
     }
 
-    // sets pin array
-    for(uint8_t i = 0; i < pinAmount; i++)
-    {
-      _muxPins[i] = pins[i];
-    }
+    // Copy mux1 to the first part of _muxPins
+    memcpy(_muxPins, mux1, sizeof(uint8_t) * 4);
 
-    // sets up the pinModes for digital signal pins of multiplexer (first 3 pins)
+    // Copy mux2 to the second part of _muxPins
+    memcpy(_muxPins + 4, mux2, sizeof(uint8_t) * 4);
+
+    // sets up the pinModes for digital signal pins of multiplexer (6 signal pins)
+    // first multiplexer
     pinMode(_muxPins[0], OUTPUT);
     pinMode(_muxPins[1], OUTPUT);
     pinMode(_muxPins[2], OUTPUT);
+    
+    // second multiplexer
+    pinMode(_muxPins[4], OUTPUT);
+    pinMode(_muxPins[5], OUTPUT);
+    pinMode(_muxPins[6], OUTPUT);
 
     /// Re-initializes Calibration of robot since Pins have changed
     _calibration.initialized = false;
@@ -109,12 +117,28 @@ void IRSensorsCheetah::selectChannel(uint8_t sensorNum)
     /// This is the truth table for the multiplexer signal pins
     const uint8_t muxPinLayout[] = { 0b110, 0b111, 0b011, 0b010, 0b001, 0b100, 0b000, 0b101 };
 
-    // This is channel C
-    digitalWrite(_muxPins[0], bitRead(muxPinLayout[sensorNum], 2));
-    // This is channel B
-    digitalWrite(_muxPins[1], bitRead(muxPinLayout[sensorNum], 1));
-    // this is channel A
-    digitalWrite(_muxPins[2], bitRead(muxPinLayout[sensorNum], 0));
+
+    // FIRST MULTIPLEXER
+    if(sensorNum < 8)
+    {
+      // This is channel C
+      digitalWrite(_muxPins[0], bitRead(muxPinLayout[sensorNum], 2));
+      // This is channel B
+      digitalWrite(_muxPins[1], bitRead(muxPinLayout[sensorNum], 1));
+      // this is channel A
+      digitalWrite(_muxPins[2], bitRead(muxPinLayout[sensorNum], 0));
+    }
+    // SECOND MULTIPLEXER
+    else
+    {
+      // This is channel C
+      digitalWrite(_muxPins[4], bitRead(muxPinLayout[sensorNum - 8], 2));
+      // This is channel B
+      digitalWrite(_muxPins[5], bitRead(muxPinLayout[sensorNum - 8], 1));
+      // this is channel A
+      digitalWrite(_muxPins[6], bitRead(muxPinLayout[sensorNum - 8], 0));
+    }
+
 }
 
 void IRSensorsCheetah::calibratePrivate(CalibrationData &calibration)
@@ -127,8 +151,7 @@ void IRSensorsCheetah::calibratePrivate(CalibrationData &calibration)
   if (!calibration.initialized)
   {
     uint16_t * oldMaximum = calibration.maximum;
-    calibration.maximum = (uint16_t *)realloc(calibration.maximum,
-                                              sizeof(uint16_t) * _sensorAmount);
+    calibration.maximum = (uint16_t *)realloc(calibration.maximum, sizeof(uint16_t) * _sensorAmount);
     if (calibration.maximum == nullptr)
     {
       // Memory allocation failed; don't continue.
@@ -137,8 +160,7 @@ void IRSensorsCheetah::calibratePrivate(CalibrationData &calibration)
     }
 
     uint16_t * oldMinimum = calibration.minimum;
-    calibration.minimum = (uint16_t *)realloc(calibration.minimum,
-                                              sizeof(uint16_t) * _sensorAmount);
+    calibration.minimum = (uint16_t *)realloc(calibration.minimum, sizeof(uint16_t) * _sensorAmount);
     if (calibration.minimum == nullptr)
     {
       // Memory allocation failed; don't continue.
@@ -209,7 +231,14 @@ void IRSensorsCheetah::readPrivate(uint16_t *_sensorValues)
         {
             // add the conversion result
             selectChannel(i);
-            _sensorValues[i] += analogRead(_muxPins[3]);
+            if(i < 8)
+            {
+              _sensorValues[i] += analogRead(_muxPins[3]);
+            }
+            else
+            {
+              _sensorValues[i] += analogRead(_muxPins[7]);
+            }
         }
     }
 
@@ -250,13 +279,11 @@ uint16_t IRSensorsCheetah::readLinesPrivate(uint16_t* _sensorValues)
         // If it last read to the left of center, return 0.
         if (_lastPosition < (_sensorAmount - 1) * 1000 / 2)
         {
-          Serial.println("Lost line from left side");
           return 0;
         }
         // If it last read to the right of center, return the max.
         else
         {
-          Serial.println("Lost line from right side");
           return (_sensorAmount - 1) * 1000;
         }
     }
