@@ -25,7 +25,7 @@ uint16_t sensorValues[sensorCount];
 
 void setup()
 {
-    cheetah.setMultiplexerPins((const uint8_t[]) {7, 4, 2, A7}, (const uint8_t[]) {7, 4, 2, A7});
+    cheetah.setMultiplexerPins((const uint8_t[]) {2, 4, 7, A2, A3});
 
     Serial.begin(9600);
 }

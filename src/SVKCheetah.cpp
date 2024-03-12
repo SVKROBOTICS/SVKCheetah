@@ -7,9 +7,9 @@
 
 #include <Servo.h>
 
-void IRSensorsCheetah::setMultiplexerPins(const uint8_t *mux1, const uint8_t *mux2) {
-    // 8 Pins used for Multiplexer (6 Signal 2 Output)
-    const uint8_t pinAmount = 8;
+void IRSensorsCheetah::setMultiplexerPins(const uint8_t *pins) {
+    // 8 Pins used for Multiplexer (3 Signal 2 Output)
+    const uint8_t pinAmount = 5;
 
     // Reallocate space for _muxPins
     uint8_t *oldMuxPins = _muxPins;
@@ -22,21 +22,15 @@ void IRSensorsCheetah::setMultiplexerPins(const uint8_t *mux1, const uint8_t *mu
     }
 
     // Copy mux1 to the first part of _muxPins
-    memcpy(_muxPins, mux1, sizeof(uint8_t) * 4);
+    memcpy(_muxPins, pins, sizeof(uint8_t) * pinAmount);
 
-    // Copy mux2 to the second part of _muxPins
-    memcpy(_muxPins + 4, mux2, sizeof(uint8_t) * 4);
 
     // sets up the pinModes for digital signal pins of multiplexer (6 signal pins)
     // first multiplexer
     pinMode(_muxPins[0], OUTPUT);
     pinMode(_muxPins[1], OUTPUT);
     pinMode(_muxPins[2], OUTPUT);
-    
-    // second multiplexer
-    pinMode(_muxPins[4], OUTPUT);
-    pinMode(_muxPins[5], OUTPUT);
-    pinMode(_muxPins[6], OUTPUT);
+
 
     /// Re-initializes Calibration of robot since Pins have changed
     _calibration.initialized = false;
@@ -118,26 +112,12 @@ void IRSensorsCheetah::selectChannel(uint8_t sensorNum)
     const uint8_t muxPinLayout[] = { 0b110, 0b111, 0b011, 0b010, 0b001, 0b100, 0b000, 0b101 };
 
 
-    // FIRST MULTIPLEXER
-    if(sensorNum < 8)
-    {
       // This is channel C
       digitalWrite(_muxPins[0], bitRead(muxPinLayout[sensorNum], 2));
       // This is channel B
       digitalWrite(_muxPins[1], bitRead(muxPinLayout[sensorNum], 1));
       // this is channel A
       digitalWrite(_muxPins[2], bitRead(muxPinLayout[sensorNum], 0));
-    }
-    // SECOND MULTIPLEXER
-    else
-    {
-      // This is channel C
-      digitalWrite(_muxPins[4], bitRead(muxPinLayout[sensorNum - 8], 2));
-      // This is channel B
-      digitalWrite(_muxPins[5], bitRead(muxPinLayout[sensorNum - 8], 1));
-      // this is channel A
-      digitalWrite(_muxPins[6], bitRead(muxPinLayout[sensorNum - 8], 0));
-    }
 
 }
 
@@ -237,7 +217,7 @@ void IRSensorsCheetah::readPrivate(uint16_t *_sensorValues)
             }
             else
             {
-              _sensorValues[i] += analogRead(_muxPins[7]);
+              _sensorValues[i] += analogRead(_muxPins[4]);
             }
         }
     }

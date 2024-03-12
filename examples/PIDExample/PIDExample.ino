@@ -1,14 +1,13 @@
 #include <SVKCheetah.h>
 
-#define MAX_INTEGRAL 1400
+#define MAX_INTEGRAL 700
 
 
 IRSensorsCheetah cheetah;
 
 
 const uint8_t sensorCount = 16;
-const uint8_t muxPins1[4] = { 7, 4, 2, A7};
-const uint8_t muxPins2[4] = { 7, 4, 2, A7};
+const uint8_t muxPins[5] = { 2, 4, 7, A2, A3};
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 uint16_t sensorValues[sensorCount];
 

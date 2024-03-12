@@ -18,7 +18,7 @@ class IRSensorsCheetah {
             FOR EXAMPLE:   _muxPins = {5(Signal0),6(Signal1),7(Signal2),A0(OUTPUT)}
             @param pins Multiplexer pins that should be inserted with correct order (SEE ABOVE)
         ***/
-        void setMultiplexerPins(const uint8_t *mux1, const uint8_t *mux2);
+        void setMultiplexerPins(const uint8_t *pins);
 
 
         /// @brief Sets number of analog readings to average per analog sensor
