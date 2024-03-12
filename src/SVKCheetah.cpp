@@ -25,8 +25,8 @@ void IRSensorsCheetah::setMultiplexerPins(const uint8_t *pins) {
     memcpy(_muxPins, pins, sizeof(uint8_t) * pinAmount);
 
 
-    // sets up the pinModes for digital signal pins of multiplexer (6 signal pins)
-    // first multiplexer
+    // sets up the pinModes for digital signal pins of multiplexer (3 signal pins)
+    // both multiplexers share signal pins
     pinMode(_muxPins[0], OUTPUT);
     pinMode(_muxPins[1], OUTPUT);
     pinMode(_muxPins[2], OUTPUT);
@@ -110,8 +110,12 @@ void IRSensorsCheetah::selectChannel(uint8_t sensorNum)
 {
     /// This is the truth table for the multiplexer signal pins
     // this is shit code will fix later
-    const uint8_t muxPinLayout[] = { 0b110, 0b111, 0b011, 0b010, 0b001, 0b100, 0b000, 0b101, 0b110, 0b111, 0b011, 0b010, 0b001, 0b100, 0b000, 0b101 };
+    const uint8_t muxPinLayout[] = { 0b110, 0b111, 0b011, 0b010, 0b001, 0b100, 0b000, 0b101 };
 
+    if(sensorNum > 7)
+    {
+      sensorNum -= 8;
+    }
 
       // This is channel C
       digitalWrite(_muxPins[0], bitRead(muxPinLayout[sensorNum], 2));
