@@ -95,7 +95,7 @@ class IRSensorsCheetah {
 
     private:
         // Amount of IR sensors
-        const uint8_t _sensorAmount = 16;
+        const uint8_t _sensorAmount = 15;
 
         // Multiplexer signal pins and output pin
         uint8_t *_muxPins = nullptr;

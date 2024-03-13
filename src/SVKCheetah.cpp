@@ -109,7 +109,7 @@ uint16_t IRSensorsCheetah::readLineBlack(uint16_t* sensorValues)
 void IRSensorsCheetah::selectChannel(uint8_t sensorNum)
 {
     /// This is the truth table for the multiplexer signal pins
-    const uint8_t muxPinLayout[] = { 0b101, 0b111, 0b011, 0b001, 0b010, 0b100, 0b000, 0b110, 0b110, 0b000, 0b100, 0b010, 0b001, 0b011, 0b111, 0b101 };
+    const uint8_t muxPinLayout[] = { 0b111, 0b011, 0b001, 0b010, 0b100, 0b000, 0b110, 0b110, 0b000, 0b100, 0b010, 0b001, 0b011, 0b111, 0b101 };
 
       // This is channel C
       digitalWrite(_muxPins[0], bitRead(muxPinLayout[sensorNum], 2));
@@ -233,7 +233,7 @@ uint16_t IRSensorsCheetah::readLinesPrivate(uint16_t* _sensorValues)
 {
     bool onLine = false;
     uint32_t avg = 0; // this is for the weighted total
-    uint16_t sum = 0; // this is for the denominator, which is <= 64000
+    uint16_t sum = 0; // this is for the denominator
 
 
     readCalibrated(_sensorValues);
@@ -258,11 +258,13 @@ uint16_t IRSensorsCheetah::readLinesPrivate(uint16_t* _sensorValues)
         // If it last read to the left of center, return 0.
         if (_lastPosition < (_sensorAmount - 1) * 1000 / 2)
         {
+          Serial.println("Lost Line from left...");
           return 0;
         }
         // If it last read to the right of center, return the max.
         else
         {
+          Serial.println("Lost Line from right...");
           return (_sensorAmount - 1) * 1000;
         }
     }
