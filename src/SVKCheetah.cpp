@@ -109,7 +109,6 @@ uint16_t IRSensorsCheetah::readLineBlack(uint16_t* sensorValues)
 void IRSensorsCheetah::selectChannel(uint8_t sensorNum)
 {
     /// This is the truth table for the multiplexer signal pins
-    // this is shit code will fix later
     const uint8_t muxPinLayout[] = { 0b101, 0b111, 0b011, 0b001, 0b010, 0b100, 0b000, 0b110, 0b110, 0b000, 0b100, 0b010, 0b001, 0b011, 0b111, 0b101 };
 
       // This is channel C
