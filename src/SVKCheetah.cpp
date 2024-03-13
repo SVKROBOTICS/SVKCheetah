@@ -210,7 +210,7 @@ void IRSensorsCheetah::readPrivate(uint16_t *_sensorValues)
         {
             // add the conversion result
             selectChannel(i);
-            if(i < 8)
+            if(i < 7)
             {
               _sensorValues[i] += analogRead(_muxPins[3]);
             }
@@ -246,7 +246,8 @@ uint16_t IRSensorsCheetah::readLinesPrivate(uint16_t* _sensorValues)
         if (value > 200) { onLine = true; }
 
         // only average in values that are above a noise threshold
-        if (value > 50)
+        // temp change hard reducting noise threshold
+        if (value > 20)
         {
         avg += (uint32_t)value * (i * 1000);
         sum += value;
