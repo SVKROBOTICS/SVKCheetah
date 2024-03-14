@@ -67,7 +67,6 @@ void IRSensorsCheetah::readCalibrated(uint16_t* _sensorValues)
 {
     if(!_calibration.initialized)
     {
-        Serial.println("Not Calibrated");
         return;
     }
 
@@ -259,13 +258,11 @@ uint16_t IRSensorsCheetah::readLinesPrivate(uint16_t* _sensorValues)
         // If it last read to the left of center, return 0.
         if (_lastPosition < (_sensorAmount - 1) * 1000 / 2)
         {
-          Serial.println("Lost Line from left...");
           return 0;
         }
         // If it last read to the right of center, return the max.
         else
         {
-          Serial.println("Lost Line from right...");
           return (_sensorAmount - 1) * 1000;
         }
     }
