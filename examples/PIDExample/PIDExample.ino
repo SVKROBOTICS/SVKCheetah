@@ -1,7 +1,7 @@
 #include <SVKCheetah.h>
 
 #define MAX_INTEGRAL 700
-#define MAX_SPEED 255
+#define MAX_SPEED 100
 
 
 IRSensorsCheetah irSensors;
@@ -9,18 +9,18 @@ IRSensorsCheetah irSensors;
 
 const uint8_t sensorCount = 15;
 const uint8_t muxPins[5] = { 2, 4, 7, A2, A3};
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
 uint16_t sensorValues[sensorCount];
 
 
 // PID constants
-float Kp = 0.1;      // Proportional constant
+float Kp = 6.5;      // Proportional constant
 // float Ki = 0.001;    // Integral constant
-float Kd = 0.05;     // Derivative constant
+float Kd = 2;     // Derivative constant
 
 // Motor Pins
 const uint8_t PWMA = 3;
-const uint8_t PMWB = 11;
+const uint8_t PWMB = 11;
 const uint8_t DIRA = 13;
 const uint8_t DIRB = A1;
 
@@ -31,7 +31,7 @@ float integral = 0;
 
 
 // Motor Speed variables
-const int baseSpeed = 100;
+const int baseSpeed = 45;
 int leftSpeed = 0;
 int rightSpeed = 0;
 
@@ -41,7 +41,6 @@ void setup()
     irSensors.setMultiplexerPins(muxPins);
 
     delay(500);
-    pinMode(LED_BUILTIN, OUTPUT);
 
     pinMode(DIRA, OUTPUT);
     pinMode(DIRB, OUTPUT);
@@ -49,16 +48,17 @@ void setup()
 
     irSensors.setCalibrationMode(true);
 
+    irSensors.setSamplesPerSecond(1);
+
         // analogRead() takes about 0.1 ms on an AVR.
     // 0.1 ms per sensor * 4 samples per sensor read (default) * 8 sensors
     // * 10 reads per calibrate() call = ~32 ms per calibrate() call.
     // Call calibrate() 300 times to make calibration take about 10 seconds.
-    for(uint16_t i = 0; i < 200; i++)
+    for(uint16_t i = 0; i < 100; i++)
     {
         irSensors.calibrate();
     }
 
-    digitalWrite(LED_BUILTIN, LOW);
 
     Serial.begin(9600);
 
@@ -83,6 +83,7 @@ void setup()
 
 
 void loop() {
+
   // read calibrated sensors values and get position of black line from 0 to 7000 (8 sensors)
   float position = irSensors.readLineBlack(sensorValues);
   float error = 7000 - position; // Assuming the line is at the middle (7500)
@@ -106,12 +107,15 @@ void loop() {
 
     // Control the motors
     analogWrite(PWMA, leftSpeed); // Left motor speed control
-    analogWrite(PMWB, rightSpeed); // Right motor speed control
+    analogWrite(PWMB, rightSpeed); // Right motor speed control
 
     // Set motor directions
     digitalWrite(DIRA, leftSpeed > 0 ? LOW : HIGH); // Set left motor direction
     digitalWrite(DIRB, rightSpeed > 0 ? LOW : HIGH); // Set right motor direction
 
+
     // Add a small delay to allow motors to adjust
-    delay(1);
+
+    delayMicroseconds(100);
+
 }
