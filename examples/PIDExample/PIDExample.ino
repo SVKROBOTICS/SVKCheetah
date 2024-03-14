@@ -38,7 +38,7 @@ int rightSpeed = 0;
 
 void setup()
 {
-    irSensors.setMultiplexerPins(muxPins1, muxPins2);
+    irSensors.setMultiplexerPins(muxPins);
 
     delay(500);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -85,7 +85,7 @@ void setup()
 void loop() {
   // read calibrated sensors values and get position of black line from 0 to 7000 (8 sensors)
   float position = irSensors.readLineBlack(sensorValues);
-  float error = 7500 - position; // Assuming the line is at the middle (7500)
+  float error = 7000 - position; // Assuming the line is at the middle (7500)
 
 //   integral += error;
 //   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
@@ -100,8 +100,8 @@ void loop() {
   rightSpeed = baseSpeed - output;
 
     // Ensure motor speeds don't exceed maximum speed limit
-    leftSpeed = min(leftSpeed, MAX_SPEED);
-    rightSpeed = min(rightSpeed, MAX_SPEED);
+    leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
+    rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
 
 
     // Control the motors
@@ -113,5 +113,5 @@ void loop() {
     digitalWrite(DIRB, rightSpeed > 0 ? LOW : HIGH); // Set right motor direction
 
     // Add a small delay to allow motors to adjust
-    delay(10);
+    delay(1);
 }

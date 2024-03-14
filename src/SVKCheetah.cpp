@@ -243,11 +243,11 @@ uint16_t IRSensorsCheetah::readLinesPrivate(uint16_t* _sensorValues)
         uint16_t value = _sensorValues[i];
 
         // keep track of whether we see the line at all
-        if (value > 200) { onLine = true; }
+        if (value > 350) { onLine = true; }
 
         // only average in values that are above a noise threshold
         // temp change hard reducting noise threshold
-        if (value > 20)
+        if (value > 60)
         {
         avg += (uint32_t)value * (i * 1000);
         sum += value;
