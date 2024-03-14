@@ -1,12 +1,13 @@
 #include <SVKCheetah.h>
 
 #define MAX_INTEGRAL 700
+#define MAX_SPEED 255
 
 
-IRSensorsCheetah cheetah;
+IRSensorsCheetah irSensors;
 
 
-const uint8_t sensorCount = 16;
+const uint8_t sensorCount = 15;
 const uint8_t muxPins[5] = { 2, 4, 7, A2, A3};
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 uint16_t sensorValues[sensorCount];
@@ -14,7 +15,7 @@ uint16_t sensorValues[sensorCount];
 
 // PID constants
 float Kp = 0.1;      // Proportional constant
-float Ki = 0.001;    // Integral constant
+// float Ki = 0.001;    // Integral constant
 float Kd = 0.05;     // Derivative constant
 
 // Motor Pins
@@ -37,7 +38,7 @@ int rightSpeed = 0;
 
 void setup()
 {
-    cheetah.setMultiplexerPins(muxPins1, muxPins2);
+    irSensors.setMultiplexerPins(muxPins1, muxPins2);
 
     delay(500);
     pinMode(LED_BUILTIN, OUTPUT);
@@ -46,7 +47,7 @@ void setup()
     pinMode(DIRB, OUTPUT);
 
 
-    cheetah.setCalibrationMode(true);
+    irSensors.setCalibrationMode(true);
 
         // analogRead() takes about 0.1 ms on an AVR.
     // 0.1 ms per sensor * 4 samples per sensor read (default) * 8 sensors
@@ -54,7 +55,7 @@ void setup()
     // Call calibrate() 300 times to make calibration take about 10 seconds.
     for(uint16_t i = 0; i < 200; i++)
     {
-        cheetah.calibrate();
+        irSensors.calibrate();
     }
 
     digitalWrite(LED_BUILTIN, LOW);
@@ -64,14 +65,14 @@ void setup()
     // Prints minimum and maximum values read by sensors
     for (uint8_t i = 0; i < sensorCount; i++)
     {
-        Serial.print(cheetah._calibration.minimum[i]);
+        Serial.print(irSensors._calibration.minimum[i]);
         Serial.print(' ');
     }
     Serial.println();
 
     for (uint8_t i = 0; i < sensorCount; i++)
     {
-        Serial.print(cheetah._calibration.maximum[i]);
+        Serial.print(irSensors._calibration.maximum[i]);
         Serial.print(' ');
     }
     Serial.println();
@@ -83,20 +84,24 @@ void setup()
 
 void loop() {
   // read calibrated sensors values and get position of black line from 0 to 7000 (8 sensors)
-  float position = cheetah.readLineBlack(sensorValues);
+  float position = irSensors.readLineBlack(sensorValues);
   float error = 7500 - position; // Assuming the line is at the middle (7500)
 
-  integral += error;
-  integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+//   integral += error;
+//   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
 
   float derivative = error - lastError;
   lastError = error;
 
-  float output = Kp * error + Ki * integral + Kd * derivative;
+  float output = Kp * error + Kd * derivative;
 
   // Adjust motor speeds based on PID output
   leftSpeed = baseSpeed + output;
   rightSpeed = baseSpeed - output;
+
+    // Ensure motor speeds don't exceed maximum speed limit
+    leftSpeed = min(leftSpeed, MAX_SPEED);
+    rightSpeed = min(rightSpeed, MAX_SPEED);
 
 
     // Control the motors
@@ -104,8 +109,8 @@ void loop() {
     analogWrite(PMWB, rightSpeed); // Right motor speed control
 
     // Set motor directions
-    digitalWrite(DIRA, leftSpeed > 0 ? HIGH : LOW); // Set left motor direction
-    digitalWrite(DIRB, rightSpeed > 0 ? HIGH : LOW); // Set right motor direction
+    digitalWrite(DIRA, leftSpeed > 0 ? LOW : HIGH); // Set left motor direction
+    digitalWrite(DIRB, rightSpeed > 0 ? LOW : HIGH); // Set right motor direction
 
     // Add a small delay to allow motors to adjust
     delay(10);
