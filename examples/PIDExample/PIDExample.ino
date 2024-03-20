@@ -4,19 +4,21 @@
 #define MAX_SPEED 100
 
 
+// We create the class object
 IRSensorsCheetah irSensors;
 
-
+// Set pin amount and pins
 const uint8_t sensorCount = 15;
 const uint8_t muxPins[5] = { 2, 4, 7, A2, A3};
 
+// create array for storing IR values
 uint16_t sensorValues[sensorCount];
 
 
 // PID constants
-float Kp = 6.5;      // Proportional constant
+float Kp = 0.485;      // Proportional constant
 // float Ki = 0.001;    // Integral constant
-float Kd = 2;     // Derivative constant
+float Kd = 4.25;     // Derivative constant
 
 // Motor Pins
 const uint8_t PWMA = 3;
@@ -40,21 +42,15 @@ void setup()
 {
     irSensors.setMultiplexerPins(muxPins);
 
-    delay(500);
-
     pinMode(DIRA, OUTPUT);
     pinMode(DIRB, OUTPUT);
 
+    // Sets samples taken per sensor
+    irSensors.setSamplesPerSensor(1);
 
-    irSensors.setCalibrationMode(true);
-
-    irSensors.setSamplesPerSecond(1);
-
-        // analogRead() takes about 0.1 ms on an AVR.
-    // 0.1 ms per sensor * 4 samples per sensor read (default) * 8 sensors
-    // * 10 reads per calibrate() call = ~32 ms per calibrate() call.
-    // Call calibrate() 300 times to make calibration take about 10 seconds.
-    for(uint16_t i = 0; i < 100; i++)
+    // Runs calibration for 100 times in order to give enough time for
+    // correct calibration to complete
+    for(uint16_t i = 0; i < 200; i++)
     {
         irSensors.calibrate();
     }
@@ -77,16 +73,18 @@ void setup()
     }
     Serial.println();
     Serial.println();
-    delay(1000);
+
+    // 2.5 second delay after calibration in order for user to place robot in starting position
+    delay(2500);
 
 }
 
 
 void loop() {
 
-  // read calibrated sensors values and get position of black line from 0 to 7000 (8 sensors)
+  // read calibrated sensors values and get position of black line from 0 to 14000 (15 sensors)
   float position = irSensors.readLineBlack(sensorValues);
-  float error = 7000 - position; // Assuming the line is at the middle (7500)
+  float error = 7000 - position; // Assuming the line is at the middle (7000)
 
 //   integral += error;
 //   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
@@ -100,22 +98,21 @@ void loop() {
   leftSpeed = baseSpeed + output;
   rightSpeed = baseSpeed - output;
 
-    // Ensure motor speeds don't exceed maximum speed limit
-    leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
-    rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
+  // Ensure motor speeds don't exceed maximum speed limit
+  leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
+  rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
 
 
-    // Control the motors
-    analogWrite(PWMA, leftSpeed); // Left motor speed control
-    analogWrite(PWMB, rightSpeed); // Right motor speed control
+  // Control the motors
+  analogWrite(PWMA, leftSpeed); // Left motor speed control
+  analogWrite(PWMB, rightSpeed); // Right motor speed control
 
-    // Set motor directions
-    digitalWrite(DIRA, leftSpeed > 0 ? LOW : HIGH); // Set left motor direction
-    digitalWrite(DIRB, rightSpeed > 0 ? LOW : HIGH); // Set right motor direction
+  // Set motor directions
+  digitalWrite(DIRA, leftSpeed > 0 ? LOW : HIGH); // Set left motor direction
+  digitalWrite(DIRB, rightSpeed > 0 ? LOW : HIGH); // Set right motor direction
 
 
-    // Add a small delay to allow motors to adjust
-
-    delayMicroseconds(100);
+  // Add a small delay to allow motors to adjust
+  delayMicroseconds(100);
 
 }

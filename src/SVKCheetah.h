@@ -10,9 +10,10 @@ class IRSensorsCheetah {
         /// @brief Class Constructor
         IRSensorsCheetah() = default;
 
+        /// @brief Destructor
         ~IRSensorsCheetah();
 
-        /*** @brief Sets Multiplexer 3 Digital Signal pins and Multiplexer Analog Output pin.
+        /*** @brief Sets Multiplexers 3 Digital Signal pins and Multiplexers 2 Analog Output pin.
             IMPORTANT: PINS SHOULD BE INPUTTED IN THIS SPECIFIC ORDER
             S0 -> S1 -> S2-> muxOutput
             FOR EXAMPLE:   _muxPins = {5(Signal0),6(Signal1),7(Signal2),A0(OUTPUT)}
@@ -23,11 +24,11 @@ class IRSensorsCheetah {
 
         /// @brief Sets number of analog readings to average per analog sensor
         /// @param samples Number of samples
-        void setSamplesPerSecond(uint8_t samples);
+        void setSamplesPerSensor(uint8_t samples);
 
         /// @brief Returns number of analog samples per sensor
         /// @return Number of samples
-        uint8_t getSamplesPerSecond() { return _samplesPerSensor; };
+        uint8_t getSamplesPerSensor() { return _samplesPerSensor; };
 
         /**
          * @brief Sets if user wants the robot to calibrate before running or not
@@ -55,18 +56,6 @@ class IRSensorsCheetah {
 
         /// @brief Calibration data
         CalibrationData _calibration;
-
-        /// @brief Sets if Turbine will be activated or not (Default is true)
-        /// @param turbineMode Bool value , wether true = on or false = off
-        void setTurbineMode(bool turbineMode)   { _turbineOn = turbineMode; };
-
-        /// @brief Gets the mode of the turbine for this run
-        /// @return Bool value, true = on or false = off
-        bool getTurbineMode()   { return _turbineOn; };
-
-        /// @brief Sets Turbine speed
-        /// @param speed Integer for speed of turbine
-        void setTurbineSpeed(int speed);
 
         /// @brief Calibrates Robot to black line values
         void calibrate();
