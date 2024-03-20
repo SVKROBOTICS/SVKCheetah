@@ -37,7 +37,7 @@ void IRSensorsCheetah::setMultiplexerPins(const uint8_t *pins) {
 }
 
 
-void IRSensorsCheetah::setSamplesPerSecond(uint8_t samples)
+void IRSensorsCheetah::setSamplesPerSensor(uint8_t samples)
 {
     if(samples > 64) { samples = 64; }
     _samplesPerSensor = samples;
