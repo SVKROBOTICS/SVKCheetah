@@ -4,14 +4,12 @@
 #define MAX_SPEED 100
 
 
-// We create the class object
 IRSensorsCheetah irSensors;
 
-// Set pin amount and pins
+
 const uint8_t sensorCount = 15;
 const uint8_t muxPins[5] = { 2, 4, 7, A2, A3};
 
-// create array for storing IR values
 uint16_t sensorValues[sensorCount];
 
 
@@ -42,15 +40,14 @@ void setup()
 {
     irSensors.setMultiplexerPins(muxPins);
 
+    delay(500);
+
     pinMode(DIRA, OUTPUT);
     pinMode(DIRB, OUTPUT);
+    
 
-    // Sets samples taken per sensor
-    irSensors.setSamplesPerSensor(1);
-
-    // Runs calibration for 100 times in order to give enough time for
-    // correct calibration to complete
-    for(uint16_t i = 0; i < 200; i++)
+    // Runs calibration method 100 times in order for the robot to correctly calibrate on black line values
+    for(uint16_t i = 0; i < 100; i++)
     {
         irSensors.calibrate();
     }
@@ -74,8 +71,11 @@ void setup()
     Serial.println();
     Serial.println();
 
-    // 2.5 second delay after calibration in order for user to place robot in starting position
-    delay(2500);
+    // Sets amount of times each sensor is read in a single loop
+    irSensors.setSamplesPerSensor(1);
+
+    // delay to set robot into starting position
+    delay(1000);
 
 }
 
