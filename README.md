@@ -1,11 +1,12 @@
 # SVK Robotics Cheetah Line Follow Robot
 
-This is a custom Arduino library that includes a modified version of the IRremote library.
+This is a custom Arduino library for the SVK Cheetah Line Follow Robot that includes a modified version of the IRremote library for remote operation.
 
 ## Installation Instructions
 
 1. **Download the ZIP file:**
-   - Download the `MyLibrary.zip` file.
+   - Go to the [SVK Robotics Cheetah repository in github](https://github.com/SVKROBOTICS/SVKCheetah).
+   - Press the "Code" button then press "Download ZIP", or you can [**click here**](https://github.com/SVKROBOTICS/SVKCheetah/archive/refs/heads/main.zip).
 
 2. **Remove Existing IRremote Library:**
    - Before importing the new library, ensure that any existing installations of the IRremote library are removed or renamed to prevent conflicts.
@@ -14,12 +15,12 @@ This is a custom Arduino library that includes a modified version of the IRremot
 3. **Import the Library:**
    - Open the Arduino IDE.
    - Go to `Sketch > Include Library > Add .ZIP Library...`.
-   - Select the downloaded `MyLibrary.zip` file to import it.
+   - Select the downloaded `SVKCheetah-main.zip` file to import it.
 
 4. **Use the Library:**
-   - After importing, you can include `MyLibrary` in your sketches:
+   - After importing, you can include `SVKCheetah` in your sketches:
      ```cpp
-     #include <MyLibrary.h>
+     #include <SVKCheetah.h>
      ```
 
 ## Notes
