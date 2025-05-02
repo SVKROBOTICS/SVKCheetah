@@ -5,6 +5,7 @@
 #ifdef USE_SVKTUNER
   #include <SVKTunerApp.h>
   #include <SoftwareSerial.h>
+  #define SVKTUNER_DEBUG
   #define BT_RX 5
   #define BT_TX 6
   SoftwareSerial bluetoothSerial(BT_RX, BT_TX);
@@ -27,7 +28,7 @@ uint16_t sensorValues[sensorCount];
 
 // PID constants
 float Kp = 1.45;      // Proportional constant
-// float Ki = 0.001;    // Integral constant
+float Ki = 0.000;    // Integral constant
 float Kd = 2.85;     // Derivative constant
 
 // Motor Pins
@@ -93,7 +94,7 @@ void setup()
     pinMode(DIRA, OUTPUT);
     pinMode(DIRB, OUTPUT);
     digitalWrite(DIRA, LOW); // Set left motor direction
-    digitalWrite(DIRB, LOW); // Set right motor direction
+    digitalWrite(DIRB, HIGH); // Set right motor direction
 
     // delay to set robot into starting position
     delay(1000);
@@ -107,7 +108,7 @@ void loop() {
   #ifdef USE_SVKTUNER
     #ifdef SVKTUNER_DEBUG
     if (bluetoothSerial.available()) {
-        DEBUG_PRINTLN(F("[BT] Data detected in buffer..."));
+        Serial.println(F("[BT] Data detected in buffer..."));
     }
     #endif
 
@@ -118,22 +119,24 @@ void loop() {
       robotRunning = true;
     }
     else if(tuner.getRobotState() == STOPPED) {
-        robotRunning = false;
+      robotRunning = false;
     }
   #endif
 
+  #ifdef USE_SVKTUNER
   if(robotRunning) {
+  #endif
     // read calibrated sensors values and get position of black line from 0 to 14000 (15 sensors)
     float position = irSensors.readLineBlack(sensorValues);
     float error = 7000 - position; // Assuming the line is at the middle (7000)
 
-  //   integral += error;
-  //   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+    integral += error;
+    integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
 
     float derivative = error - lastError;
     lastError = error;
 
-    float output = Kp * error + Kd * derivative;
+    float output = Kp * error + Ki * integral + Kd * derivative;
 
     // Adjust motor speeds based on PID output
     leftSpeed = baseSpeed + output;
@@ -149,5 +152,12 @@ void loop() {
 
     // Add a small delay to allow motors to adjust
     delayMicroseconds(100);
+
+  #ifdef USE_SVKTUNER
   }
+  else {
+    analogWrite(PWMA, 0);
+    analogWrite(PWMB, 0);
+  }
+  #endif
 }
