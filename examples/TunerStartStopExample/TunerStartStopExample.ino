@@ -6,8 +6,8 @@
 #define SVKTUNER_DEBUG
 
 // Bluetooth module connections
-#define BT_RX 3  // Connect to Bluetooth TX
-#define BT_TX 2  // Connect to Bluetooth RX
+#define BT_RX 5  // Connect to Bluetooth TX
+#define BT_TX 6  // Connect to Bluetooth RX
 
 SoftwareSerial bluetoothSerial(BT_RX, BT_TX);
 SVKTunerApp tuner(bluetoothSerial);
