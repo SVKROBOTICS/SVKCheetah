@@ -1,5 +1,17 @@
 #include <SVKCheetah.h>
 
+#define USE_SVKTUNER
+
+#ifdef USE_SVKTUNER
+  #include <SVKTunerApp.h>
+  #include <SoftwareSerial.h>
+  #define BT_RX 5
+  #define BT_TX 6
+  SoftwareSerial bluetoothSerial(BT_RX, BT_TX);
+  SVKTunerApp tuner(bluetoothSerial);
+  bool robotRunning = false;
+#endif
+
 #define MAX_INTEGRAL 700
 #define MAX_SPEED 100
 
@@ -14,9 +26,9 @@ uint16_t sensorValues[sensorCount];
 
 
 // PID constants
-float Kp = 0.485;      // Proportional constant
+float Kp = 1.45;      // Proportional constant
 // float Ki = 0.001;    // Integral constant
-float Kd = 4.25;     // Derivative constant
+float Kd = 2.85;     // Derivative constant
 
 // Motor Pins
 const uint8_t PWMA = 3;
@@ -41,9 +53,6 @@ void setup()
     irSensors.setMultiplexerPins(muxPins);
 
     delay(500);
-
-    pinMode(DIRA, OUTPUT);
-    pinMode(DIRB, OUTPUT);
 
     // Runs calibration method 100 times in order for the robot to correctly calibrate on black line values
     for(uint16_t i = 0; i < 100; i++)
@@ -72,7 +81,17 @@ void setup()
     // Sets amount of times each sensor is read in a single loop
     irSensors.setSamplesPerSensor(1);
 
+    #ifdef USE_SVKTUNER
+      bluetoothSerial.begin(9600);
+      #ifdef SVKTUNER_DEBUG
+        while (!Serial);
+        Serial.println(F("=== Bluetooth Debug Monitor ==="));
+      #endif
+    #endif
+
     // Set motor directions
+    pinMode(DIRA, OUTPUT);
+    pinMode(DIRB, OUTPUT);
     digitalWrite(DIRA, LOW); // Set left motor direction
     digitalWrite(DIRB, LOW); // Set right motor direction
 
@@ -84,31 +103,51 @@ void setup()
 
 void loop() {
 
-  // read calibrated sensors values and get position of black line from 0 to 14000 (15 sensors)
-  float position = irSensors.readLineBlack(sensorValues);
-  float error = 7000 - position; // Assuming the line is at the middle (7000)
+  // At Start of every loop checks if Bluetooth Start Stop signal was received
+  #ifdef USE_SVKTUNER
+    #ifdef SVKTUNER_DEBUG
+    if (bluetoothSerial.available()) {
+        DEBUG_PRINTLN(F("[BT] Data detected in buffer..."));
+    }
+    #endif
 
-//   integral += error;
-//   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+    // Process only start and stop commands
+    tuner.processStartStopCommands();
 
-  float derivative = error - lastError;
-  lastError = error;
+    if(tuner.getRobotState() == RUNNING) {
+      robotRunning = true;
+    }
+    else if(tuner.getRobotState() == STOPPED) {
+        robotRunning = false;
+    }
+  #endif
 
-  float output = Kp * error + Kd * derivative;
+  if(robotRunning) {
+    // read calibrated sensors values and get position of black line from 0 to 14000 (15 sensors)
+    float position = irSensors.readLineBlack(sensorValues);
+    float error = 7000 - position; // Assuming the line is at the middle (7000)
 
-  // Adjust motor speeds based on PID output
-  leftSpeed = baseSpeed + output;
-  rightSpeed = baseSpeed - output;
+  //   integral += error;
+  //   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
 
-  // Ensure motor speeds don't exceed maximum speed limit
-  leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
-  rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
+    float derivative = error - lastError;
+    lastError = error;
 
-  // Control the motors
-  analogWrite(PWMA, leftSpeed); // Left motor speed control
-  analogWrite(PWMB, rightSpeed); // Right motor speed control
+    float output = Kp * error + Kd * derivative;
 
-  // Add a small delay to allow motors to adjust
-  delayMicroseconds(100);
+    // Adjust motor speeds based on PID output
+    leftSpeed = baseSpeed + output;
+    rightSpeed = baseSpeed - output;
 
+    // Ensure motor speeds don't exceed maximum speed limit
+    leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
+    rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
+
+    // Control the motors
+    analogWrite(PWMA, leftSpeed); // Left motor speed control
+    analogWrite(PWMB, rightSpeed); // Right motor speed control
+
+    // Add a small delay to allow motors to adjust
+    delayMicroseconds(100);
+  }
 }
