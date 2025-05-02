@@ -150,9 +150,6 @@ void loop() {
     analogWrite(PWMA, leftSpeed); // Left motor speed control
     analogWrite(PWMB, rightSpeed); // Right motor speed control
 
-    // Add a small delay to allow motors to adjust
-    delayMicroseconds(100);
-
   #ifdef USE_SVKTUNER
   }
   else {
