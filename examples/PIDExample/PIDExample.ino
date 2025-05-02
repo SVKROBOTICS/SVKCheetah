@@ -44,14 +44,12 @@ void setup()
 
     pinMode(DIRA, OUTPUT);
     pinMode(DIRB, OUTPUT);
-    
 
     // Runs calibration method 100 times in order for the robot to correctly calibrate on black line values
     for(uint16_t i = 0; i < 100; i++)
     {
         irSensors.calibrate();
     }
-
 
     Serial.begin(9600);
 
@@ -73,6 +71,10 @@ void setup()
 
     // Sets amount of times each sensor is read in a single loop
     irSensors.setSamplesPerSensor(1);
+
+    // Set motor directions
+    digitalWrite(DIRA, LOW); // Set left motor direction
+    digitalWrite(DIRB, LOW); // Set right motor direction
 
     // delay to set robot into starting position
     delay(1000);
@@ -102,15 +104,9 @@ void loop() {
   leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
   rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
 
-
   // Control the motors
   analogWrite(PWMA, leftSpeed); // Left motor speed control
   analogWrite(PWMB, rightSpeed); // Right motor speed control
-
-  // Set motor directions
-  digitalWrite(DIRA, leftSpeed > 0 ? LOW : HIGH); // Set left motor direction
-  digitalWrite(DIRB, rightSpeed > 0 ? LOW : HIGH); // Set right motor direction
-
 
   // Add a small delay to allow motors to adjust
   delayMicroseconds(100);
