@@ -1,11 +1,11 @@
 #include <SVKCheetah.h>
 
+// Comment out to run without Bluetooth module
 #define USE_SVKTUNER
 
 #ifdef USE_SVKTUNER
   #include <SVKTunerApp.h>
   #include <SoftwareSerial.h>
-  #define SVKTUNER_DEBUG
   #define BT_RX 5
   #define BT_TX 6
   SoftwareSerial bluetoothSerial(BT_RX, BT_TX);
@@ -13,8 +13,8 @@
   bool robotRunning = false;
 #endif
 
-#define MAX_INTEGRAL 700
-#define MAX_SPEED 100
+#define MAX_INTEGRAL 1100
+#define MAX_SPEED 115
 
 
 IRSensorsCheetah irSensors;
@@ -27,9 +27,11 @@ uint16_t sensorValues[sensorCount];
 
 
 // PID constants
-float Kp = 1.45;      // Proportional constant
-float Ki = 0.000;    // Integral constant
-float Kd = 2.85;     // Derivative constant
+
+
+float Kp = 0.22;
+float Ki = 0.0000;
+float Kd = 0.20;
 
 // Motor Pins
 const uint8_t PWMA = 3;
@@ -44,7 +46,7 @@ float integral = 0;
 
 
 // Motor Speed variables
-const int baseSpeed = 45;
+int baseSpeed = 50;
 int leftSpeed = 0;
 int rightSpeed = 0;
 
@@ -103,58 +105,56 @@ void setup()
 
 
 void loop() {
-
-  // At Start of every loop checks if Bluetooth Start Stop signal was received
   #ifdef USE_SVKTUNER
-    #ifdef SVKTUNER_DEBUG
-    if (bluetoothSerial.available()) {
-        Serial.println(F("[BT] Data detected in buffer..."));
-    }
-    #endif
-
-    // Process only start and stop commands
-    tuner.processStartStopCommands();
-
-    if(tuner.getRobotState() == RUNNING) {
-      robotRunning = true;
-    }
-    else if(tuner.getRobotState() == STOPPED) {
-      robotRunning = false;
-    }
+  tuner.processStartStopCommands();
+  if(tuner.getRobotState() == RUNNING) robotRunning = true;
+  else if(tuner.getRobotState() == STOPPED) robotRunning = false;
   #endif
 
   #ifdef USE_SVKTUNER
   if(robotRunning) {
   #endif
-    // read calibrated sensors values and get position of black line from 0 to 14000 (15 sensors)
-    float position = irSensors.readLineBlack(sensorValues);
-    float error = 7000 - position; // Assuming the line is at the middle (7000)
 
-    integral += error;
-    integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+    float position = irSensors.readLineBlack(sensorValues);
+    float error = 7000 - position;
 
     float derivative = error - lastError;
     lastError = error;
 
+    integral += error;
+    integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+
+
     float output = Kp * error + Ki * integral + Kd * derivative;
+    output = constrain(output, -MAX_SPEED, MAX_SPEED);
 
-    // Adjust motor speeds based on PID output
-    leftSpeed = baseSpeed + output;
-    rightSpeed = baseSpeed - output;
+    if (position <= 1000) {
+        // Hard right turn
+        leftSpeed = MAX_SPEED;
+        rightSpeed = 0;
+    } else if (position >= 13000) {
+        // Hard left turn
+        leftSpeed = 0;
+        rightSpeed = MAX_SPEED;
+    } else {
+        // Normal PID
+        leftSpeed = baseSpeed + output;
+        rightSpeed = baseSpeed - output;
+    }
 
-    // Ensure motor speeds don't exceed maximum speed limit
     leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
     rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
 
-    // Control the motors
-    analogWrite(PWMA, leftSpeed); // Left motor speed control
-    analogWrite(PWMB, rightSpeed); // Right motor speed control
+    analogWrite(PWMA, leftSpeed);
+    analogWrite(PWMB, rightSpeed);
+
+    delayMicroseconds(1800);
 
   #ifdef USE_SVKTUNER
-  }
-  else {
+  } else {
     analogWrite(PWMA, 0);
     analogWrite(PWMB, 0);
   }
   #endif
 }
+
