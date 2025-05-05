@@ -25,12 +25,13 @@ const uint8_t PWMB = 11;
 const uint8_t DIRA = 13;
 const uint8_t DIRB = A1;
 
-
+// Go forward
 void start() {
     analogWrite(PWMA, 100);
     analogWrite(PWMB, 100);
 }
 
+// Stop robot
 void stop() {
     analogWrite(PWMA, 0);
     analogWrite(PWMB, 0);
