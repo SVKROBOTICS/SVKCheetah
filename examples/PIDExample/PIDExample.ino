@@ -14,7 +14,7 @@
 #endif
 
 #define MAX_INTEGRAL 1100
-#define MAX_SPEED 115
+#define MAX_SPEED 110
 
 
 IRSensorsCheetah irSensors;
@@ -29,7 +29,7 @@ uint16_t sensorValues[sensorCount];
 // PID constants
 
 
-float Kp = 0.22;
+float Kp = 0.215;
 float Ki = 0.0000;
 float Kd = 0.20;
 
@@ -96,7 +96,7 @@ void setup()
     pinMode(DIRA, OUTPUT);
     pinMode(DIRB, OUTPUT);
     digitalWrite(DIRA, LOW); // Set left motor direction
-    digitalWrite(DIRB, HIGH); // Set right motor direction
+    digitalWrite(DIRB, LOW); // Set right motor direction
 
     // delay to set robot into starting position
     delay(1000);
