@@ -1,7 +1,20 @@
 #include <SVKCheetah.h>
 
-#define MAX_INTEGRAL 700
-#define MAX_SPEED 100
+// Comment out to run without Bluetooth module
+#define USE_SVKTUNER
+
+#ifdef USE_SVKTUNER
+  #include <SVKTunerApp.h>
+  #include <SoftwareSerial.h>
+  #define BT_RX 5
+  #define BT_TX 6
+  SoftwareSerial bluetoothSerial(BT_RX, BT_TX);
+  SVKTunerApp tuner(bluetoothSerial);
+  bool robotRunning = false;
+#endif
+
+#define MAX_INTEGRAL 1100
+#define MAX_SPEED 110
 
 
 IRSensorsCheetah irSensors;
@@ -14,9 +27,11 @@ uint16_t sensorValues[sensorCount];
 
 
 // PID constants
-float Kp = 0.485;      // Proportional constant
-// float Ki = 0.001;    // Integral constant
-float Kd = 4.25;     // Derivative constant
+
+
+float Kp = 0.215;
+float Ki = 0.0000;
+float Kd = 0.20;
 
 // Motor Pins
 const uint8_t PWMA = 3;
@@ -31,7 +46,7 @@ float integral = 0;
 
 
 // Motor Speed variables
-const int baseSpeed = 45;
+int baseSpeed = 50;
 int leftSpeed = 0;
 int rightSpeed = 0;
 
@@ -41,9 +56,6 @@ void setup()
     irSensors.setMultiplexerPins(muxPins);
 
     delay(500);
-
-    pinMode(DIRA, OUTPUT);
-    pinMode(DIRB, OUTPUT);
 
     // Runs calibration method 100 times in order for the robot to correctly calibrate on black line values
     for(uint16_t i = 0; i < 100; i++)
@@ -72,7 +84,17 @@ void setup()
     // Sets amount of times each sensor is read in a single loop
     irSensors.setSamplesPerSensor(1);
 
+    #ifdef USE_SVKTUNER
+      bluetoothSerial.begin(9600);
+      #ifdef SVKTUNER_DEBUG
+        while (!Serial);
+        Serial.println(F("=== Bluetooth Debug Monitor ==="));
+      #endif
+    #endif
+
     // Set motor directions
+    pinMode(DIRA, OUTPUT);
+    pinMode(DIRB, OUTPUT);
     digitalWrite(DIRA, LOW); // Set left motor direction
     digitalWrite(DIRB, LOW); // Set right motor direction
 
@@ -83,32 +105,56 @@ void setup()
 
 
 void loop() {
+  #ifdef USE_SVKTUNER
+  tuner.processStartStopCommands();
+  if(tuner.getRobotState() == RUNNING) robotRunning = true;
+  else if(tuner.getRobotState() == STOPPED) robotRunning = false;
+  #endif
 
-  // read calibrated sensors values and get position of black line from 0 to 14000 (15 sensors)
-  float position = irSensors.readLineBlack(sensorValues);
-  float error = 7000 - position; // Assuming the line is at the middle (7000)
+  #ifdef USE_SVKTUNER
+  if(robotRunning) {
+  #endif
 
-//   integral += error;
-//   integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+    float position = irSensors.readLineBlack(sensorValues);
+    float error = 7000 - position;
 
-  float derivative = error - lastError;
-  lastError = error;
+    float derivative = error - lastError;
+    lastError = error;
 
-  float output = Kp * error + Kd * derivative;
+    integral += error;
+    integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
 
-  // Adjust motor speeds based on PID output
-  leftSpeed = baseSpeed + output;
-  rightSpeed = baseSpeed - output;
 
-  // Ensure motor speeds don't exceed maximum speed limit
-  leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
-  rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
+    float output = Kp * error + Ki * integral + Kd * derivative;
+    output = constrain(output, -MAX_SPEED, MAX_SPEED);
 
-  // Control the motors
-  analogWrite(PWMA, leftSpeed); // Left motor speed control
-  analogWrite(PWMB, rightSpeed); // Right motor speed control
+    if (position <= 1000) {
+        // Hard right turn
+        leftSpeed = MAX_SPEED;
+        rightSpeed = 0;
+    } else if (position >= 13000) {
+        // Hard left turn
+        leftSpeed = 0;
+        rightSpeed = MAX_SPEED;
+    } else {
+        // Normal PID
+        leftSpeed = baseSpeed + output;
+        rightSpeed = baseSpeed - output;
+    }
 
-  // Add a small delay to allow motors to adjust
-  delayMicroseconds(100);
+    leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
+    rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
 
+    analogWrite(PWMA, leftSpeed);
+    analogWrite(PWMB, rightSpeed);
+
+    delayMicroseconds(1800);
+
+  #ifdef USE_SVKTUNER
+  } else {
+    analogWrite(PWMA, 0);
+    analogWrite(PWMB, 0);
+  }
+  #endif
 }
+
