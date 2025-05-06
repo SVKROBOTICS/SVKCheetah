@@ -19,19 +19,15 @@
 
 IRSensorsCheetah irSensors;
 
-
 const uint8_t sensorCount = 15;
 const uint8_t muxPins[5] = { 2, 4, 7, A2, A3};
 
 uint16_t sensorValues[sensorCount];
 
-
 // PID constants
-
-
-float Kp = 0.215;
+float Kp = 0.048;
 float Ki = 0.0000;
-float Kd = 0.20;
+float Kd = 1;
 
 // Motor Pins
 const uint8_t PWMA = 3;
@@ -46,7 +42,7 @@ float integral = 0;
 
 
 // Motor Speed variables
-int baseSpeed = 50;
+int baseSpeed = 45;
 int leftSpeed = 0;
 int rightSpeed = 0;
 
@@ -100,7 +96,6 @@ void setup()
 
     // delay to set robot into starting position
     delay(1000);
-
 }
 
 
@@ -126,7 +121,7 @@ void loop() {
 
 
     float output = Kp * error + Ki * integral + Kd * derivative;
-    output = constrain(output, -MAX_SPEED, MAX_SPEED);
+    output = constrain(output, -90, 90);
 
     if (position <= 1000) {
         // Hard right turn
@@ -148,7 +143,7 @@ void loop() {
     analogWrite(PWMA, leftSpeed);
     analogWrite(PWMB, rightSpeed);
 
-    delayMicroseconds(1800);
+    delayMicroseconds(1200);
 
   #ifdef USE_SVKTUNER
   } else {

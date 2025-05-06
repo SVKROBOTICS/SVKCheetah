@@ -43,9 +43,9 @@ void setup() {
 
     #ifdef SVKTUNER_DEBUG
     while (!Serial);  // Wait for Serial monitor on debug builds
-    DEBUG_PRINTLN(F("\n\n=== Bluetooth Debug Monitor ==="));
-    DEBUG_PRINTLN(F("System initialized"));
-    DEBUG_PRINTLN(F("Waiting for !START! or !STOP!..."));
+    Serial.println(F("\n\n=== Bluetooth Debug Monitor ==="));
+    Serial.println(F("System initialized"));
+    Serial.println(F("Waiting for !START! or !STOP!..."));
     #else
     Serial.println(F("Waiting for signals..."));
     #endif
@@ -63,7 +63,7 @@ void loop() {
     // First check if we're receiving any data at all
     #ifdef SVKTUNER_DEBUG
     if (bluetoothSerial.available()) {
-        DEBUG_PRINTLN(F("[BT] Data detected in buffer..."));
+        Serial.println(F("[BT] Data detected in buffer..."));
     }
     #endif
 
@@ -87,7 +87,7 @@ void loop() {
     static unsigned long lastDebug = 0;
     if (millis() - lastDebug > 2000) {  // Every 2 seconds
         lastDebug = millis();
-        DEBUG_PRINTLN(F("[STATUS] System active..."));
+        Serial.println(F("[STATUS] System active..."));
     }
     #endif
 
