@@ -101,55 +101,55 @@ void setup()
 
 void loop() {
   #ifdef USE_SVKTUNER
-  tuner.processStartStopCommands();
-  if(tuner.getRobotState() == RUNNING) robotRunning = true;
-  else if(tuner.getRobotState() == STOPPED) robotRunning = false;
+    tuner.processStartStopCommands();
+    if(tuner.getRobotState() == RUNNING) robotRunning = true;
+    else if(tuner.getRobotState() == STOPPED) robotRunning = false;
   #endif
 
   #ifdef USE_SVKTUNER
-  if(robotRunning) {
+    if(robotRunning) {
   #endif
+  
+      float position = irSensors.readLineBlack(sensorValues);
+      float error = 7000 - position;
 
-    float position = irSensors.readLineBlack(sensorValues);
-    float error = 7000 - position;
+      float derivative = error - lastError;
+      lastError = error;
 
-    float derivative = error - lastError;
-    lastError = error;
-
-    integral += error;
-    integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
+      integral += error;
+      integral = constrain(integral, -MAX_INTEGRAL, MAX_INTEGRAL);
 
 
-    float output = Kp * error + Ki * integral + Kd * derivative;
-    output = constrain(output, -90, 90);
+      float output = Kp * error + Ki * integral + Kd * derivative;
+      output = constrain(output, -90, 90);
 
-    if (position <= 1000) {
-        // Hard right turn
-        leftSpeed = MAX_SPEED;
-        rightSpeed = 0;
-    } else if (position >= 13000) {
-        // Hard left turn
-        leftSpeed = 0;
-        rightSpeed = MAX_SPEED;
+      if (position <= 1000) {
+          // Hard right turn
+          leftSpeed = MAX_SPEED;
+          rightSpeed = 0;
+      } else if (position >= 13000) {
+          // Hard left turn
+          leftSpeed = 0;
+          rightSpeed = MAX_SPEED;
+      } else {
+          // Normal PID
+          leftSpeed = baseSpeed + output;
+          rightSpeed = baseSpeed - output;
+      }
+
+      leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
+      rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
+
+      analogWrite(PWMA, leftSpeed);
+      analogWrite(PWMB, rightSpeed);
+
+      delayMicroseconds(1200);
+
+  #ifdef USE_SVKTUNER
     } else {
-        // Normal PID
-        leftSpeed = baseSpeed + output;
-        rightSpeed = baseSpeed - output;
+      analogWrite(PWMA, 0);
+      analogWrite(PWMB, 0);
     }
-
-    leftSpeed = constrain(leftSpeed, 0, MAX_SPEED);
-    rightSpeed = constrain(rightSpeed, 0, MAX_SPEED);
-
-    analogWrite(PWMA, leftSpeed);
-    analogWrite(PWMB, rightSpeed);
-
-    delayMicroseconds(1200);
-
-  #ifdef USE_SVKTUNER
-  } else {
-    analogWrite(PWMA, 0);
-    analogWrite(PWMB, 0);
-  }
   #endif
 }
 
