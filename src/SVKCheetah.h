@@ -1,8 +1,12 @@
 /// Header file for reading IR Follow Line Sensors using multiplexer in SVK Robotics Line Follow Robot
-
 #pragma once
 
+#include <Arduino.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <Servo.h>
 
 /// @brief Class for reading IR values using Multiplexer
 class IRSensorsCheetah {
@@ -75,12 +79,6 @@ class IRSensorsCheetah {
         /// @param _sensorValues IR Sensor values
         /// @return returns number representing black line
         uint16_t readLineBlack(uint16_t* sensorValues);
-
-
-
-
-
-
 
     private:
         // Amount of IR sensors

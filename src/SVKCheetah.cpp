@@ -1,11 +1,5 @@
 #include <SVKCheetah.h>
 
-#include <Arduino.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include <Servo.h>
 
 void IRSensorsCheetah::setMultiplexerPins(const uint8_t *pins) {
     // 8 Pins used for Multiplexer (3 Signal 2 Output)
